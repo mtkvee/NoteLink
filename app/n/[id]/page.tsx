@@ -41,7 +41,7 @@ export default async function NoteViewPage({ params }: NoteViewPageProps) {
     const data = docSnap.data() as Note;
     note = {
       content: data.content,
-      createdAt: data.createdAt ?? null
+      createdAt: data.createdAt ?? null,
     };
   } catch {
     error = "Failed to load this note. Please try again.";
@@ -87,7 +87,7 @@ export default async function NoteViewPage({ params }: NoteViewPageProps) {
   return (
     <main>
       <div className="note-container">
-        <h1 className="note-title">Shared note</h1>
+        <h1 className="note-title">Shared Note</h1>
         <p className="note-meta">
           {createdAtString ? (
             <>
@@ -103,7 +103,7 @@ export default async function NoteViewPage({ params }: NoteViewPageProps) {
             marginTop: "1.5rem",
             fontSize: "0.8rem",
             color: "#9ca3af",
-            textAlign: "right"
+            textAlign: "right",
           }}
         >
           <Link href="/" className="muted-link">
@@ -114,4 +114,3 @@ export default async function NoteViewPage({ params }: NoteViewPageProps) {
     </main>
   );
 }
-

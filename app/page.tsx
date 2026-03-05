@@ -1,6 +1,11 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useRef, useState } from "react";
+import CircularProgress from "@mui/material/CircularProgress";
+import IconButton from "@mui/material/IconButton";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faArrowUpFromBracket } from "@fortawesome/free-solid-svg-icons";
 
 type ShareResponse =
   | {
@@ -17,21 +22,29 @@ export default function CreateNotePage() {
   const [error, setError] = useState<string | null>(null);
   const [noteUrl, setNoteUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [copyError, setCopyError] = useState<string | null>(null);
+  const submitLockRef = useRef(false);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    if (submitLockRef.current) return;
+
+    submitLockRef.current = true;
     setError(null);
     setCopied(false);
+    setCopyError(null);
     setNoteUrl(null);
 
     const trimmed = content.trim();
     if (!trimmed) {
       setError("Please enter something to share.");
+      submitLockRef.current = false;
       return;
     }
 
     if (trimmed.length > 5000) {
       setError("Note is too long. Maximum is 5000 characters.");
+      submitLockRef.current = false;
       return;
     }
 
@@ -40,9 +53,9 @@ export default function CreateNotePage() {
       const res = await fetch("/api/share", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ content })
+        body: JSON.stringify({ content }),
       });
 
       const data = (await res.json()) as ShareResponse;
@@ -51,7 +64,7 @@ export default function CreateNotePage() {
         setError(
           "error" in data
             ? data.error
-            : "Something went wrong. Please try again."
+            : "Something went wrong. Please try again.",
         );
         return;
       }
@@ -61,6 +74,7 @@ export default function CreateNotePage() {
       setError("Unable to reach the server. Please try again.");
     } finally {
       setIsSubmitting(false);
+      submitLockRef.current = false;
     }
   }
 
@@ -68,10 +82,12 @@ export default function CreateNotePage() {
     if (!noteUrl) return;
     try {
       await navigator.clipboard.writeText(noteUrl);
+      setCopyError(null);
       setCopied(true);
-      setTimeout(() => setCopied(false), 1800);
+      setTimeout(() => setCopied(false), 2000);
     } catch {
-      setError("Could not copy to clipboard. Please copy manually.");
+      setCopied(false);
+      setCopyError("Copy failed");
     }
   }
 
@@ -79,7 +95,7 @@ export default function CreateNotePage() {
     <main>
       <div className="card">
         <div className="card-header">
-          <h1 className="card-title">Quick Note Share</h1>
+          <h1 className="card-title">NoteLink</h1>
           <p className="card-subtitle">
             Paste or type your note and get a shareable link. No accounts, just
             text.
@@ -88,7 +104,7 @@ export default function CreateNotePage() {
 
         <form onSubmit={handleSubmit}>
           <textarea
-            className="textarea"
+            className="textarea overflow-y-scroll scrollbar-hide"
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="Write something you'd like to share..."
@@ -96,34 +112,52 @@ export default function CreateNotePage() {
           />
           <div className="card-footer">
             <div className="card-footer-row">
+              <span className="helper-text">
+                {content.trim().length} / 5000{" "}
+              </span>
               <button
                 type="submit"
                 className="button-primary"
                 disabled={isSubmitting}
+                aria-label="Share"
+                aria-busy={isSubmitting}
               >
-                {isSubmitting ? "Sharing..." : "Share"}
+                <span className="button-primary-content">
+                  <span className="button-primary-icon" aria-hidden="true">
+                    {isSubmitting ? (
+                      <CircularProgress
+                        size={16}
+                        color="inherit"
+                        thickness={5}
+                      />
+                    ) : (
+                      <FontAwesomeIcon icon={faArrowUpFromBracket} />
+                    )}
+                  </span>
+                </span>
               </button>
-              <span className="helper-text">
-                {content.trim().length}/5000
-              </span>
             </div>
 
             {error && <p className="error-text">{error}</p>}
 
             {noteUrl && (
-              <div>
+              <div className="share-link-block">
                 <p className="helper-text">Your shareable link:</p>
-                <p className="note-url">{noteUrl}</p>
-                <div style={{ marginTop: "0.5rem", display: "flex", gap: "0.5rem", alignItems: "center", flexWrap: "wrap" }}>
-                  <button
-                    type="button"
-                    className="button-secondary"
-                    onClick={handleCopy}
-                  >
-                    Copy link
-                  </button>
-                  {copied && <span className="success-text">Copied</span>}
+                <div className="note-url-row">
+                  <p className="note-url">{noteUrl}</p>
+                  <div className="note-url-copy">
+                    <IconButton
+                      type="button"
+                      onClick={handleCopy}
+                      aria-label="Copy share link"
+                      size="small"
+                    >
+                      <ContentCopyIcon fontSize="small" />
+                    </IconButton>
+                    {copied && <span className="success-text">Copied</span>}
+                  </div>
                 </div>
+                {copyError && <p className="error-text">{copyError}</p>}
               </div>
             )}
           </div>
@@ -132,4 +166,3 @@ export default function CreateNotePage() {
     </main>
   );
 }
-
