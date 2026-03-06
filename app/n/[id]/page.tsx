@@ -42,7 +42,8 @@ export async function generateMetadata({
     },
     openGraph: {
       title: `Shared note | ${siteConfig.name}`,
-      description: "This note page is intentionally not indexed by search engines.",
+      description:
+        "This note page is intentionally not indexed by search engines.",
       url: `/n/${id}`,
       images: [siteConfig.ogImagePath],
     },
@@ -79,15 +80,17 @@ export default async function NoteViewPage({ params }: NoteViewPageProps) {
 
     const data = docSnap.data() as Note;
     const expireAtDate =
-      data.expireAt && "toDate" in data.expireAt ? data.expireAt.toDate() : null;
+      data.expireAt && "toDate" in data.expireAt
+        ? data.expireAt.toDate()
+        : null;
 
     if (expireAtDate && expireAtDate.getTime() <= Date.now()) {
       await docRef.delete();
       isExpired = true;
     } else {
-    note = {
-      content: data.content,
-      createdAt: data.createdAt ?? null,
+      note = {
+        content: data.content,
+        createdAt: data.createdAt ?? null,
         expireAt: data.expireAt ?? null,
       };
     }
@@ -104,7 +107,8 @@ export default async function NoteViewPage({ params }: NoteViewPageProps) {
             {error}
           </p>
           <Link href="/" className="muted-link">
-            ← Back to create note
+            <i className="fa-solid fa-arrow-left-from-bracket"></i>Back to
+            create note
           </Link>
         </div>
       </main>
@@ -120,7 +124,8 @@ export default async function NoteViewPage({ params }: NoteViewPageProps) {
             This note was available for 3 days and has now been removed.
           </p>
           <Link href="/" className="muted-link">
-            Create your own note
+            Create your own note{" "}
+            <i className="fa-solid fa-arrow-right-from-bracket"></i>
           </Link>
         </div>
       </main>

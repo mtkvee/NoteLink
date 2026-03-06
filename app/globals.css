@@ -43,6 +43,7 @@ main {
 }
 
 .card-title {
+  margin: 0;
   font-size: 1.25rem;
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -188,11 +189,6 @@ textarea {
   font-weight: 500;
 }
 
-.error-text {
-  font-size: 0.85rem;
-  color: #b91c1c;
-}
-
 .success-text {
   font-size: 0.85rem;
   color: #6b7280;
@@ -231,7 +227,6 @@ textarea {
 }
 
 .share-modal {
-  position: relative;
   width: min(100%, 540px);
   max-height: calc(100vh - 2.5rem);
   overflow-y: auto;
@@ -241,6 +236,7 @@ textarea {
 }
 
 .share-modal-header {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -312,18 +308,6 @@ textarea {
   margin-bottom: 0;
 }
 
-.warning-indicator {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  align-self: center;
-  margin: 0;
-  font-size: 0.78rem;
-  font-weight: 500;
-  color: #b7791f;
-}
-
 .qr-code-frame {
   display: inline-flex;
   align-items: center;
@@ -337,11 +321,11 @@ textarea {
   cursor: pointer;
 }
 
-.share-modal-feedback {
+.notification-banner {
   position: absolute;
-  top: 0.9rem;
+  top: 50%;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%);
   margin: 0;
   padding: 0.35rem 0.65rem;
   border-radius: 999px;
@@ -354,25 +338,45 @@ textarea {
   animation: fade-feedback 2s ease;
 }
 
+.notification-success {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.notification-info {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.notification-warning {
+  background-color: #fef3c7;
+  color: #b45309;
+}
+
+.notification-error {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
 @keyframes fade-feedback {
   0% {
     opacity: 0;
-    transform: translateX(-50%) translateY(-4px);
+    transform: translate(-50%, calc(-50% - 4px));
   }
 
   12% {
     opacity: 1;
-    transform: translateX(-50%) translateY(0);
+    transform: translate(-50%, -50%);
   }
 
   82% {
     opacity: 1;
-    transform: translateX(-50%) translateY(0);
+    transform: translate(-50%, -50%);
   }
 
   100% {
     opacity: 0;
-    transform: translateX(-50%) translateY(-4px);
+    transform: translate(-50%, calc(-50% - 4px));
   }
 }
 

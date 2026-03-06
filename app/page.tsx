@@ -6,10 +6,13 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faArrowUpFromBracket,
   faCopy,
-  faTriangleExclamation,
   faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 import { QRCodeCanvas } from "qrcode.react";
+import NotificationBanner, {
+  NotificationState,
+  NotificationType,
+} from "@/components/NotificationBanner";
 
 type ShareResponse =
   | {
@@ -23,37 +26,17 @@ type ShareResponse =
 export default function CreateNotePage() {
   const [content, setContent] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [noteId, setNoteId] = useState<string | null>(null);
   const [noteUrl, setNoteUrl] = useState<string | null>(null);
-  const [copyError, setCopyError] = useState<string | null>(null);
-  const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
-  const [showFeedback, setShowFeedback] = useState(false);
-  const [showIndicator, setShowIndicator] = useState(false);
-  const [isIndicatorVisible, setIsIndicatorVisible] = useState(false);
+  const [notification, setNotification] = useState<NotificationState | null>(null);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [hasSuccessfulShare, setHasSuccessfulShare] = useState(false);
   const submitLockRef = useRef(false);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const feedbackTimeoutRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    if (!showIndicator) return;
-
-    setIsIndicatorVisible(true);
-
-    const fadeTimer = window.setTimeout(() => {
-      setIsIndicatorVisible(false);
-    }, 2100);
-
-    const hideTimer = window.setTimeout(() => {
-      setShowIndicator(false);
-    }, 2500);
-
-    return () => {
-      window.clearTimeout(fadeTimer);
-      window.clearTimeout(hideTimer);
-    };
-  }, [showIndicator]);
+  const trimmedContent = content.trim();
+  const hasValidContent =
+    trimmedContent.length > 0 && trimmedContent.length <= 5000;
 
   useEffect(() => {
     return () => {
@@ -86,28 +69,32 @@ export default function CreateNotePage() {
     };
   }, [isShareModalOpen]);
 
+  function resetShareState() {
+    if (feedbackTimeoutRef.current) {
+      window.clearTimeout(feedbackTimeoutRef.current);
+      feedbackTimeoutRef.current = null;
+    }
+
+    setContent("");
+    setNoteId(null);
+    setNoteUrl(null);
+    setNotification(null);
+    setHasSuccessfulShare(false);
+  }
+
   async function submitShare() {
     if (submitLockRef.current) return;
 
     submitLockRef.current = true;
-    setError(null);
-    setNoteId(null);
-    setCopyError(null);
-    setFeedbackMessage(null);
-    setShowFeedback(false);
-    setShowIndicator(false);
-    setIsIndicatorVisible(false);
-    setNoteUrl(null);
+    setNotification(null);
 
-    const trimmed = content.trim();
-    if (!trimmed) {
-      setError("Please enter something to share.");
+    if (!trimmedContent) {
       submitLockRef.current = false;
       return;
     }
 
-    if (trimmed.length > 5000) {
-      setError("Note is too long. Maximum is 5000 characters.");
+    if (trimmedContent.length > 5000) {
+      showNotification("Note is too long. Maximum is 5000 characters.", "error");
       submitLockRef.current = false;
       return;
     }
@@ -125,20 +112,22 @@ export default function CreateNotePage() {
       const data = (await res.json()) as ShareResponse;
 
       if (!res.ok || "error" in data) {
-        setError(
+        showNotification(
           "error" in data
             ? data.error
             : "Something went wrong. Please try again.",
+          "error",
         );
         return;
       }
 
       setNoteId(data.id);
       setNoteUrl(data.url);
-      setShowIndicator(true);
+      setHasSuccessfulShare(true);
       setIsShareModalOpen(true);
+      showNotification("Note will auto delete after 78 hours.", "warning");
     } catch {
-      setError("Unable to reach the server. Please try again.");
+      showNotification("Unable to reach the server. Please try again.", "error");
     } finally {
       setIsSubmitting(false);
       submitLockRef.current = false;
@@ -154,24 +143,21 @@ export default function CreateNotePage() {
     if (!noteUrl) return;
     try {
       await navigator.clipboard.writeText(noteUrl);
-      setCopyError(null);
-      showSharedFeedback("Copied");
+      showNotification("Copied", "success");
     } catch {
-      setCopyError("Copy failed");
+      showNotification("Copy failed", "error");
     }
   }
 
-  function showSharedFeedback(message: string) {
+  function showNotification(message: string, type: NotificationType) {
     if (feedbackTimeoutRef.current) {
       window.clearTimeout(feedbackTimeoutRef.current);
     }
 
-    setFeedbackMessage(message);
-    setShowFeedback(true);
+    setNotification({ message, type });
 
     feedbackTimeoutRef.current = window.setTimeout(() => {
-      setShowFeedback(false);
-      setFeedbackMessage(null);
+      setNotification(null);
       feedbackTimeoutRef.current = null;
     }, 2000);
   }
@@ -194,11 +180,14 @@ export default function CreateNotePage() {
     downloadLink.href = qrCanvas.toDataURL("image/png");
     downloadLink.download = downloadFileName;
     downloadLink.click();
-    showSharedFeedback("QR downloaded");
+    showNotification("QR downloaded", "info");
   }
 
   function handleCloseModal() {
     setIsShareModalOpen(false);
+    if (hasSuccessfulShare) {
+      resetShareState();
+    }
   }
 
   return (
@@ -218,17 +207,17 @@ export default function CreateNotePage() {
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="Write something you'd like to share..."
-            maxLength={6000}
+            maxLength={5000}
           />
           <div className="card-footer">
             <div className="card-footer-row">
               <span className="helper-text">
-                {content.trim().length} / 5000{" "}
+                {trimmedContent.length} / 5000{" "}
               </span>
               <button
                 type="submit"
                 className="button-primary"
-                disabled={isSubmitting}
+                disabled={isSubmitting || !hasValidContent}
                 aria-label="Share"
                 aria-busy={isSubmitting}
               >
@@ -247,8 +236,6 @@ export default function CreateNotePage() {
                 </span>
               </button>
             </div>
-
-            {error && <p className="error-text">{error}</p>}
           </div>
         </form>
       </div>
@@ -266,11 +253,10 @@ export default function CreateNotePage() {
             aria-labelledby="share-modal-title"
             onClick={(event) => event.stopPropagation()}
           >
-            {showFeedback && feedbackMessage && (
-              <p className="share-modal-feedback">{feedbackMessage}</p>
-            )}
-
             <div className="share-modal-header">
+              {notification && (
+                <NotificationBanner notification={notification} />
+              )}
               <h2 id="share-modal-title" className="share-modal-title">
                 Share
               </h2>
@@ -300,7 +286,6 @@ export default function CreateNotePage() {
                   </button>
                 </div>
               </div>
-              {copyError && <p className="error-text">{copyError}</p>}
               <div className="qr-share-block">
                 <p className="helper-text">Scan QR or Click to download</p>
                 <button
@@ -322,9 +307,6 @@ export default function CreateNotePage() {
                   </div>
                 </button>
               </div>
-              <p className="warning-indicator">
-                <span>Note will auto delete after 78 hours.</span>
-              </p>
             </div>
           </div>
         </div>
