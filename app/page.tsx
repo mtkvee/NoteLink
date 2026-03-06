@@ -1,11 +1,12 @@
 "use client";
 
-import { FormEvent, MouseEvent, useRef, useState } from "react";
+import { FormEvent, useRef, useState } from "react";
 import CircularProgress from "@mui/material/CircularProgress";
 import IconButton from "@mui/material/IconButton";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowUpFromBracket } from "@fortawesome/free-solid-svg-icons";
+import { QRCodeCanvas } from "qrcode.react";
 
 type ShareResponse =
   | {
@@ -82,11 +83,6 @@ export default function CreateNotePage() {
     await submitShare();
   }
 
-  async function handleShareClick(e: MouseEvent<HTMLButtonElement>) {
-    e.preventDefault();
-    await submitShare();
-  }
-
   async function handleCopy() {
     if (!noteUrl) return;
     try {
@@ -98,6 +94,20 @@ export default function CreateNotePage() {
       setCopied(false);
       setCopyError("Copy failed");
     }
+  }
+
+  function handleQrDownload() {
+    if (!noteUrl) return;
+
+    const qrCanvas = document.getElementById(
+      "notelink-qr",
+    ) as HTMLCanvasElement | null;
+    if (!qrCanvas) return;
+
+    const downloadLink = document.createElement("a");
+    downloadLink.href = qrCanvas.toDataURL("image/png");
+    downloadLink.download = "notelink-qr.png";
+    downloadLink.click();
   }
 
   return (
@@ -130,7 +140,6 @@ export default function CreateNotePage() {
                 disabled={isSubmitting}
                 aria-label="Share"
                 aria-busy={isSubmitting}
-                onClick={handleShareClick}
               >
                 <span className="button-primary-content">
                   <span className="button-primary-icon" aria-hidden="true">
@@ -168,6 +177,27 @@ export default function CreateNotePage() {
                   </div>
                 </div>
                 {copyError && <p className="error-text">{copyError}</p>}
+                <div className="qr-share-block">
+                  <p className="helper-text">Scan QR or Click to download</p>
+                  <button
+                    type="button"
+                    className="qr-code-button"
+                    onClick={handleQrDownload}
+                    aria-label="Download QR code"
+                  >
+                    <div className="qr-code-frame">
+                      <QRCodeCanvas
+                        id="notelink-qr"
+                        value={noteUrl}
+                        size={168}
+                        level="M"
+                        includeMargin
+                        bgColor="#ffffff"
+                        fgColor="#111827"
+                      />
+                    </div>
+                  </button>
+                </div>
               </div>
             )}
           </div>

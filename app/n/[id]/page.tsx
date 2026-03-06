@@ -7,6 +7,7 @@ import CreatedAtText from "./CreatedAtText";
 type Note = {
   content: string;
   createdAt?: FirebaseFirestore.Timestamp | null;
+  expireAt?: FirebaseFirestore.Timestamp | null;
 };
 
 interface NoteViewPageProps {
@@ -53,10 +54,12 @@ export default async function NoteViewPage({ params }: NoteViewPageProps) {
 
   let note: Note | null = null;
   let error: string | null = null;
+  let isExpired = false;
 
   try {
     const firestore = getFirestore();
-    const docSnap = await firestore.collection("notes").doc(id).get();
+    const docRef = firestore.collection("notes").doc(id);
+    const docSnap = await docRef.get();
 
     if (!docSnap.exists) {
       return (
@@ -75,10 +78,19 @@ export default async function NoteViewPage({ params }: NoteViewPageProps) {
     }
 
     const data = docSnap.data() as Note;
+    const expireAtDate =
+      data.expireAt && "toDate" in data.expireAt ? data.expireAt.toDate() : null;
+
+    if (expireAtDate && expireAtDate.getTime() <= Date.now()) {
+      await docRef.delete();
+      isExpired = true;
+    } else {
     note = {
       content: data.content,
       createdAt: data.createdAt ?? null,
-    };
+        expireAt: data.expireAt ?? null,
+      };
+    }
   } catch {
     error = "Failed to load this note. Please try again.";
   }
@@ -93,6 +105,22 @@ export default async function NoteViewPage({ params }: NoteViewPageProps) {
           </p>
           <Link href="/" className="muted-link">
             ← Back to create note
+          </Link>
+        </div>
+      </main>
+    );
+  }
+
+  if (isExpired) {
+    return (
+      <main>
+        <div className="note-container center-text">
+          <h1 className="card-title">This note has expired</h1>
+          <p className="card-subtitle" style={{ marginBottom: "1.25rem" }}>
+            This note was available for 3 days and has now been removed.
+          </p>
+          <Link href="/" className="muted-link">
+            Create your own note
           </Link>
         </div>
       </main>

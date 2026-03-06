@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getFirestore, serverTimestamp } from "@/lib/firebaseAdmin";
+import { getFirestore } from "@/lib/firebaseAdmin";
 import { getRequestIp, rateLimit } from "@/lib/rateLimit";
 
 type ShareRequestBody = {
   content?: string;
 };
+
+const NOTE_TTL_MS = 3 * 24 * 60 * 60 * 1000;
 
 function getBaseUrl(req: NextRequest): string {
   const origin = req.headers.get("origin");
@@ -22,7 +24,7 @@ function getBaseUrl(req: NextRequest): string {
   }
 
   const envUrl = process.env.NEXT_PUBLIC_APP_URL;
-  if (envUrl) return envUrl;
+  if (envUrl) return envUrl.replace(/\/+$/, "");
 
   return "http://localhost:3000";
 }
@@ -67,10 +69,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const createdAt = new Date();
+    const expireAt = new Date(createdAt.getTime() + NOTE_TTL_MS);
+
     const firestore = getFirestore();
     const docRef = await firestore.collection("notes").add({
       content,
-      createdAt: serverTimestamp()
+      createdAt,
+      expireAt,
     });
 
     const baseUrl = getBaseUrl(req);
