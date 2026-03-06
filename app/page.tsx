@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useRef, useState } from "react";
+import { FormEvent, MouseEvent, useRef, useState } from "react";
 import CircularProgress from "@mui/material/CircularProgress";
 import IconButton from "@mui/material/IconButton";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
@@ -25,8 +25,7 @@ export default function CreateNotePage() {
   const [copyError, setCopyError] = useState<string | null>(null);
   const submitLockRef = useRef(false);
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
+  async function submitShare() {
     if (submitLockRef.current) return;
 
     submitLockRef.current = true;
@@ -78,6 +77,16 @@ export default function CreateNotePage() {
     }
   }
 
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    await submitShare();
+  }
+
+  async function handleShareClick(e: MouseEvent<HTMLButtonElement>) {
+    e.preventDefault();
+    await submitShare();
+  }
+
   async function handleCopy() {
     if (!noteUrl) return;
     try {
@@ -121,6 +130,7 @@ export default function CreateNotePage() {
                 disabled={isSubmitting}
                 aria-label="Share"
                 aria-busy={isSubmitting}
+                onClick={handleShareClick}
               >
                 <span className="button-primary-content">
                   <span className="button-primary-icon" aria-hidden="true">

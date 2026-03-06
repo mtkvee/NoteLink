@@ -1,5 +1,8 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { getFirestore } from "@/lib/firebaseAdmin";
+import { siteConfig } from "@/lib/site";
+import CreatedAtText from "./CreatedAtText";
 
 type Note = {
   content: string;
@@ -10,6 +13,39 @@ interface NoteViewPageProps {
   params: Promise<{
     id: string;
   }>;
+}
+
+export async function generateMetadata({
+  params,
+}: NoteViewPageProps): Promise<Metadata> {
+  const { id } = await params;
+
+  return {
+    title: "Shared Note",
+    description: "Private shared note view",
+    alternates: {
+      canonical: `/n/${id}`,
+    },
+    robots: {
+      index: false,
+      follow: false,
+      nocache: true,
+      googleBot: {
+        index: false,
+        follow: false,
+        noimageindex: true,
+        "max-snippet": -1,
+        "max-image-preview": "none",
+        "max-video-preview": -1,
+      },
+    },
+    openGraph: {
+      title: `Shared note | ${siteConfig.name}`,
+      description: "This note page is intentionally not indexed by search engines.",
+      url: `/n/${id}`,
+      images: [siteConfig.ogImagePath],
+    },
+  };
 }
 
 export default async function NoteViewPage({ params }: NoteViewPageProps) {
@@ -79,9 +115,9 @@ export default async function NoteViewPage({ params }: NoteViewPageProps) {
     );
   }
 
-  const createdAtString =
+  const createdAtTimestampMs =
     note.createdAt && "toDate" in note.createdAt
-      ? note.createdAt.toDate().toLocaleString()
+      ? note.createdAt.toDate().getTime()
       : null;
 
   return (
@@ -89,13 +125,7 @@ export default async function NoteViewPage({ params }: NoteViewPageProps) {
       <div className="note-container">
         <h1 className="note-title">Shared Note</h1>
         <p className="note-meta">
-          {createdAtString ? (
-            <>
-              Created at <span>{createdAtString}</span>
-            </>
-          ) : (
-            "Created recently"
-          )}
+          <CreatedAtText timestampMs={createdAtTimestampMs} />
         </p>
         <div className="note-content">{note.content}</div>
         <p
