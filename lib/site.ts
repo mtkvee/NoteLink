@@ -4,6 +4,6 @@ export const siteConfig = {
     "Create a secure shareable link for plain text notes in seconds.",
   url:
     process.env.NEXT_PUBLIC_APP_URL?.replace(/\/+$/, "") ??
-    "https://note-linkshare.vercel.app",
+    "https://notelink-share.vercel.app",
   ogImagePath: "/opengraph-image",
 } as const;

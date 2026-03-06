@@ -15,21 +15,29 @@ const sourceCodePro = Source_Code_Pro({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://note-linkshare.vercel.app"),
+  metadataBase: new URL("https://notelink-share.vercel.app"),
   title: "NoteLink",
   description: "Write a note and share it instantly with a simple link.",
   icons: {
     icon: [
       { url: "/favicon_io/favicon.ico", sizes: "any" },
-      { url: "/favicon_io/favicon-16x16.png", sizes: "16x16", type: "image/png" },
-      { url: "/favicon_io/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      {
+        url: "/favicon_io/favicon-16x16.png",
+        sizes: "16x16",
+        type: "image/png",
+      },
+      {
+        url: "/favicon_io/favicon-32x32.png",
+        sizes: "32x32",
+        type: "image/png",
+      },
     ],
     apple: "/favicon_io/apple-touch-icon.png",
     shortcut: "/favicon_io/favicon.ico",
   },
   openGraph: {
     type: "website",
-    url: "https://note-linkshare.vercel.app",
+    url: "https://notelink-share.vercel.app",
     title: "NoteLink",
     description: "Write a note and share it instantly with a simple link.",
     images: "/og-image.png",
