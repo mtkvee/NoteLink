@@ -308,6 +308,14 @@ textarea {
   margin-bottom: 0;
 }
 
+.share-modal-warning {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #b45309;
+  text-align: center;
+}
+
 .qr-code-frame {
   display: inline-flex;
   align-items: center;

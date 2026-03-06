@@ -125,7 +125,6 @@ export default function CreateNotePage() {
       setNoteUrl(data.url);
       setHasSuccessfulShare(true);
       setIsShareModalOpen(true);
-      showNotification("Note will auto delete after 78 hours.", "warning");
     } catch {
       showNotification("Unable to reach the server. Please try again.", "error");
     } finally {
@@ -306,6 +305,9 @@ export default function CreateNotePage() {
                     />
                   </div>
                 </button>
+                <p className="share-modal-warning">
+                  Note will auto delete after 72 hours.
+                </p>
               </div>
             </div>
           </div>
