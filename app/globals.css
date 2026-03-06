@@ -219,6 +219,62 @@ textarea {
   gap: 0.35rem;
 }
 
+.share-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  background-color: rgba(17, 24, 39, 0.42);
+  z-index: 1000;
+}
+
+.share-modal {
+  position: relative;
+  width: min(100%, 540px);
+  max-height: calc(100vh - 2.5rem);
+  overflow-y: auto;
+  border-radius: 0.5rem;
+  background-color: rgba(255, 255, 255, 1);
+  padding: 1rem;
+}
+
+.share-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.share-modal-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.75);
+}
+
+.share-modal-close,
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+}
+
+.share-modal-close:hover,
+.icon-button:hover {
+  background-color: #f3f4f6;
+  color: #111827;
+}
+
 .share-link-block .helper-text {
   font-size: 0.9rem;
   margin-bottom: 0.25rem;
@@ -256,6 +312,18 @@ textarea {
   margin-bottom: 0;
 }
 
+.warning-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  align-self: center;
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: #b7791f;
+}
+
 .qr-code-frame {
   display: inline-flex;
   align-items: center;
@@ -267,6 +335,45 @@ textarea {
   border: none;
   background: transparent;
   cursor: pointer;
+}
+
+.share-modal-feedback {
+  position: absolute;
+  top: 0.9rem;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  background-color: #f5f5f5;
+  color: #6b7280;
+  font-size: 0.8rem;
+  font-weight: 500;
+  pointer-events: none;
+  z-index: 1;
+  animation: fade-feedback 2s ease;
+}
+
+@keyframes fade-feedback {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-4px);
+  }
+
+  12% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  82% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-4px);
+  }
 }
 
 .note-container,
@@ -284,6 +391,10 @@ textarea {
 @media (min-width: 640px) {
   .note-container {
     padding: 2rem;
+  }
+
+  .share-modal {
+    padding: 1.25rem;
   }
 }
 
